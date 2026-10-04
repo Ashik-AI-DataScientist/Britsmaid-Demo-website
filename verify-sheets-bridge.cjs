@@ -1,0 +1,11 @@
+const vm=require('vm'),fs=require('fs'),assert=require('assert');
+let listener,frame,nonce,message;
+const source={postMessage:(m,o)=>{message=m;assert.equal(o,'https://n-v7munof564rx7umuncpwrb2nnehep7245bkn6oq-0lu-script.googleusercontent.com');}};
+const listeners=new Set();
+const context=vm.createContext({URL,crypto:require('crypto').webcrypto,location:{origin:'https://ashik-ai-datascientist.github.io'},window:{BritsmaidConfig:{appsScriptUrl:'https://script.google.com/macros/s/test/exec'},addEventListener:(t,f)=>listeners.add(f),removeEventListener:(t,f)=>listeners.delete(f)},document:{createElement:()=>({remove(){}}),body:{appendChild:f=>{frame=f;nonce=new URL(f.src).searchParams.get('nonce');}}},setTimeout,clearTimeout});
+vm.runInContext(fs.readFileSync('assets/sheets.js','utf8'),context);
+(async()=>{const payload={submission_id:'test'};const pending=context.window.BritsmaidSheets.submit(payload);const fire=e=>[...listeners].forEach(f=>f(e));
+fire({origin:'https://evil.example',source,data:{kind:'britsmaid:ready',nonce}});assert(!message);
+fire({origin:'https://n-v7munof564rx7umuncpwrb2nnehep7245bkn6oq-0lu-script.googleusercontent.com',source,data:{kind:'britsmaid:ready',nonce}});await new Promise(r=>setImmediate(r));assert.equal(message.payload,payload);
+fire({origin:'https://evil.example',source,data:{kind:'britsmaid:receipt',nonce,request:message.request,receipt:{accepted:true,submission_id:'test'}}});assert.equal(listeners.size,1);
+fire({origin:'https://n-v7munof564rx7umuncpwrb2nnehep7245bkn6oq-0lu-script.googleusercontent.com',source,data:{kind:'britsmaid:receipt',nonce,request:message.request,receipt:{accepted:true,submission_id:'test'}}});assert((await pending).accepted);assert.equal(listeners.size,0);console.log('PASS: Sheets bridge handshake, origin checks, payload delivery and matching receipt.');})();

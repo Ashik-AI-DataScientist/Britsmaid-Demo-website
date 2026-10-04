@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>List Your Property With Us — Britsmaid</title>
+<meta name="description" content="Tell us about your property and the Britsmaid team will get in touch to discuss next steps.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/britsmaid-logo.jpg">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header>
+  <div class="navbar">
+    <a class="brand" href="index.html" aria-label="Britsmaid home"><img src="assets/britsmaid-logo.jpg" alt="Britsmaid" width="76" height="76"><span>BRITSMAID<small>PROPERTY &amp; HOSPITALITY</small></span></a>
+    <nav>
+      <ul>
+        <li><a href="stay.html">Stay With Us</a></li>
+        <li><a href="property-management.html">Property Management</a></li>
+        <li><a href="sell-your-property.html">Sell Your Property</a></li>
+        <li><a href="index.html#about">About Us</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <button class="menu-btn" aria-label="Menu">&#9776;</button>
+  </div>
+</header>
+
+<section class="hero no-border" style="padding-bottom:10px;">
+  <div class="wrap wrap-narrow">
+    <p class="eyebrow">List Your Property With Us</p>
+    <h1 style="font-size:clamp(1.9rem,3.8vw,2.6rem);">Tell us about your property.</h1>
+    <p style="opacity:0.75; max-width:56ch;">Share a few details and our team will review your property and get in touch to discuss next steps.</p>
+  </div>
+</section>
+
+<section id="earnings" class="earnings-section"><div class="wrap earnings-layout"><div><p class="eyebrow">YOUR PROPERTY. ITS POSSIBILITIES.</p><h2>What could your<br>home earn?</h2><p>A few details. A clearer starting point. Explore an illustrative monthly booking revenue range, then let us prepare a tailored proposal.</p><p class="note">Location is collected for your proposal and does not affect this calculator. Actual projections follow a property assessment and local market review.</p></div><div class="estimator"><form class="earnings-form"><fieldset><legend>Tell us about your home</legend><div class="grid"><div class="field"><label for="calc-location">Property location *</label><input id="calc-location" type="text" name="location" required placeholder="Town or district in Kerala"></div><div class="field"><label for="calc-bedrooms">Bedrooms *</label><input id="calc-bedrooms" type="number" name="bedrooms" required min="1" max="12" step="1" value="3"></div><div class="field"><label for="calc-land_cents">Land extent (cents)</label><input id="calc-land_cents" type="number" name="land_cents" min="0" max="100000" step="0.1" placeholder="Optional"></div></div></fieldset><p class="amenities-label">Available amenities</p><div class="check-grid"><label class="amenity-choice"><input type="checkbox" name="amenities" value="pool"><span>Swimming pool</span></label><label class="amenity-choice"><input type="checkbox" name="amenities" value="gym"><span>Gym</span></label><label class="amenity-choice"><input type="checkbox" name="amenities" value="garden"><span>Landscaped garden</span></label><label class="amenity-choice"><input type="checkbox" name="amenities" value="parking"><span>Private parking</span></label><label class="amenity-choice"><input type="checkbox" name="amenities" value="ac"><span>Air conditioning</span></label><label class="amenity-choice"><input type="checkbox" name="amenities" value="wifi"><span>Wi-Fi</span></label></div><button class="submit-btn" type="submit">Calculate potential revenue ↗</button></form><div class="estimator-result" hidden aria-live="polite"><p>Illustrative monthly gross booking revenue</p><p class="range"></p><p class="assumptions"></p><p class="note">Before platform fees, management fees, utilities, maintenance and taxes. This is an illustrative scenario, not guaranteed income or a market valuation.</p><a class="btn-primary calculator-proposal" href="partner-with-us.html#enquiry">Request my tailored proposal ↗</a></div></div></div></section><section id="enquiry"><div class="wrap wrap-narrow"><div class="section-head"><p class="eyebrow">A TAILORED PROPOSAL STARTS HERE</p><h2>List your property with us.</h2><p>Tell us about your home and what you want to achieve.</p></div><form action="#" method="post" class="lead-form" data-form-type="management"><div hidden aria-hidden="true"><label>Leave this blank<input name="website_url" tabindex="-1" autocomplete="off"></label></div><fieldset><legend>01 / Your details</legend><div class="grid"><div class="field"><label for="field-owner_name">Full name *</label><input id="field-owner_name" type="text" name="owner_name" required autocomplete="name" maxlength="120"></div><div class="field"><label for="field-phone">Mobile number</label><input id="field-phone" type="tel" name="phone" autocomplete="tel" placeholder="+91 …"></div><div class="field"><label for="field-email">Email address</label><input id="field-email" type="email" name="email" autocomplete="email"></div><div class="field"><label for="field-contact_method">Preferred contact method *</label><select id="field-contact_method" name="contact_method" required><option value="">Select an option</option><option>Phone call</option><option>WhatsApp</option><option>Email</option></select></div><div class="field"><label for="field-contact_time">Preferred contact time *</label><select id="field-contact_time" name="contact_time" required><option value="">Select an option</option><option>Morning (9am–12pm IST)</option><option>Afternoon (12pm–5pm IST)</option><option>Evening (5pm–8pm IST)</option><option>Any time during business hours</option></select></div></div></fieldset><p class="contact-help">A mobile number or email address is required. Choose a contact method that matches the details you provide.</p><fieldset><legend>02 / Your property</legend><div class="grid"><div class="field"><label for="field-location">Property location *</label><input id="field-location" type="text" name="location" required placeholder="Town, district and postcode"></div><div class="field"><label for="field-property_type">Property type *</label><select id="field-property_type" name="property_type" required><option value="">Select an option</option><option>Villa</option><option>Independent house</option><option>Apartment</option><option>Homestay</option><option>Land</option><option>Other</option></select></div><div class="field"><label for="field-bedrooms">Number of bedrooms *</label><input id="field-bedrooms" type="number" name="bedrooms" required min="1" max="30" step="1"></div><div class="field"><label for="field-furnished">Furnishing *</label><select id="field-furnished" name="furnished" required><option value="">Select an option</option><option>Fully furnished</option><option>Partly furnished</option><option>Unfurnished</option></select></div><div class="field"><label for="field-built_up_sqft">Built-up area (sq. ft.)</label><input id="field-built_up_sqft" type="number" name="built_up_sqft" min="0" max="1000000"></div><div class="field"><label for="field-land_cents">Land extent (cents)</label><input id="field-land_cents" type="number" name="land_cents" min="0" max="100000" step="0.1"></div></div></fieldset><fieldset><legend>03 / Your plans</legend><div class="grid"><div class="field"><label for="field-current_status">Current status *</label><select id="field-current_status" name="current_status" required><option value="">Select an option</option><option>Vacant</option><option>Self-managed</option><option>With another manager</option><option>Listed on Airbnb / Booking.com</option></select></div><div class="field"><label for="field-main_goal">Main goal *</label><select id="field-main_goal" name="main_goal" required><option value="">Select an option</option><option>Earn from short-term stays</option><option>Find a long-term tenant</option><option>Full property care</option><option>Explore my options</option></select></div><div class="field"><p class="amenities-label">Available amenities</p><div class="check-grid"><label class="amenity-choice"><input type="checkbox" name="amenities" value="pool"><span>Swimming pool</span></label><label class="amenity-choice"><input type="checkbox" name="amenities" value="gym"><span>Gym</span></label><label class="amenity-choice"><input type="checkbox" name="amenities" value="garden"><span>Landscaped garden</span></label><label class="amenity-choice"><input type="checkbox" name="amenities" value="parking"><span>Private parking</span></label><label class="amenity-choice"><input type="checkbox" name="amenities" value="ac"><span>Air conditioning</span></label><label class="amenity-choice"><input type="checkbox" name="amenities" value="wifi"><span>Wi-Fi</span></label></div></div><div class="field"><label for="field-amenities_notes">Amenities and special features</label><input id="field-amenities_notes" type="text" name="amenities_notes" placeholder="Pool, gym, garden, parking, accessibility…" maxlength="1000"></div><div class="field"><label for="field-listing_url">Existing listing link</label><input id="field-listing_url" type="url" name="listing_url" ></div><div class="field"><label for="field-ready_date">When will the property be available?</label><input id="field-ready_date" type="date" name="ready_date" ></div><div class="field"><label for="field-proposal_notes">Anything else for your proposal?</label><input id="field-proposal_notes" type="text" name="proposal_notes" maxlength="2000"></div></div></fieldset><label class="consent-row"><input name="consent" type="checkbox" required value="accepted"><span>I consent to Britsmaid using these details to assess my property and contact me about my enquiry, in line with the <a href="privacy-policy.html">privacy policy</a>. *</span></label><button class="submit-btn" type="submit">Prepare my property enquiry ↗</button><noscript><p>JavaScript is required for online enquiry validation. Online delivery is not connected yet.</p></noscript><p class="form-status" role="status" aria-live="polite"></p><p class="note">Complete the form to prepare your enquiry, then choose WhatsApp or email to send all your answers to our team. You can also download a copy.</p><button class="download-enquiry btn-secondary" type="button" hidden>Download completed enquiry</button></form></div></section>
+<footer id="contact"><div class="wrap footer-contact"><div><p class="eyebrow">LET’S START A CONVERSATION</p><a href="tel:+919747083777">+91 97470 83777</a></div><a href="https://wa.me/919747083777">Chat on WhatsApp ↗</a><a href="mailto:contact@britsmaid.in">contact@britsmaid.in ↗</a></div>
+  <div class="wrap" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px;">
+    <span>&copy; 2026 Britsmaid Property Management Kerala Pvt. Ltd. &middot; Kochi, Kerala</span>
+    <span><a href="privacy-policy.html">Privacy</a> &middot; <a href="terms.html">Terms</a> &middot; <a href="cookie-policy.html">Cookies</a></span>
+  </div>
+</footer>
+
+<div class="mobile-bar">
+  <a href="tel:+919747083777">Call</a>
+  <a href="https://wa.me/919747083777">WhatsApp</a>
+  <a class="primary" href="#enquiry">Enquire</a>
+</div>
+
+<script src="assets/earnings.js"></script>
+<script src="assets/main.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/sheets.js"></script>
+<script src="assets/enquiries.js"></script>
+</body>
+</html>
+
+
+
