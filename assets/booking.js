@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   var form = document.querySelector('.booking-enquiry');
-  if (form) {
+  if (form && form.dataset.managedBooking !== 'true') {
     var checkIn = form.elements.check_in, checkOut = form.elements.check_out;
     var now = new Date();
     var today = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var pretty = function (date) { return new Date(date + 'T12:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}); };
       var message = ['Hello Britsmaid, I would like to enquire about a stay.', '', 'Villa: ' + form.dataset.property, 'Check-in: ' + pretty(data.get('check_in')), 'Check-out: ' + pretty(data.get('check_out')), 'Guests: ' + data.get('guests'), 'Name: ' + (data.get('guest_name').trim() || 'Not provided'), 'Notes: ' + (data.get('notes').trim() || 'None'), '', 'Please confirm availability, the total price and booking terms.'].join('\n');
       var channel = event.submitter && event.submitter.value === 'email' ? 'email' : 'whatsapp';
-      var href = channel === 'email' ? 'mailto:contact@britsmaid.in?subject=' + encodeURIComponent('Stay enquiry — ' + form.dataset.property) + '&body=' + encodeURIComponent(message) : 'https://wa.me/919747083777?text=' + encodeURIComponent(message);
+      var href = channel === 'email' ? 'mailto:' + ((window.BritsmaidContact || {}).email || 'contact@britsmaid.in') + '?subject=' + encodeURIComponent('Stay enquiry — ' + form.dataset.property) + '&body=' + encodeURIComponent(message) : 'https://wa.me/' + ((window.BritsmaidContact || {}).whatsapp || '919747083777') + '?text=' + encodeURIComponent(message);
       form.dispatchEvent(new CustomEvent('booking:prepared', {detail:{channel:channel,href:href,message:message}}));
       var link = document.createElement('a'); link.href = href;
       if (channel === 'whatsapp') { link.target = '_blank'; link.rel = 'noopener noreferrer'; }

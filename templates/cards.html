@@ -1,0 +1,6 @@
+<div class="properties">
+{% for p in properties %}<a class="pcard real-property" href="/stays/{{ p.slug }}" data-location="{{ p.location }}" data-bedrooms="{{ p.bedrooms }}" data-guests="{{ p.guests }}">
+<div class="img">{% if p.photos %}<img src="{{ p.photos[0].url }}" alt="{{ p.photos[0].alt }}" width="800" height="600" loading="lazy">{% endif %}</div>
+<div class="body"><p class="eyebrow">{{ p.category or 'ENTIRE PRIVATE HOME' }}</p><h3>{{ p.name }}</h3><p class="loc">{{ p.location }}</p><div class="meta"><span>{{ p.bedrooms }} bedrooms · {{ p.guests }} guests</span><span>{{ p.bathrooms }} bathrooms</span></div><div class="amenity-tags">{% for a in p.amenities[:3] %}<span>{{ a }}</span>{% endfor %}</div><span class="property-link">Explore the villa ↗</span></div></a>
+{% else %}<div class="collection-empty"><h3>Our next stays are on their way.</h3><p>Speak to our team about a private stay in Kerala.</p><a href="mailto:contact@britsmaid.in">Contact Britsmaid ↗</a></div>{% endfor %}
+</div>

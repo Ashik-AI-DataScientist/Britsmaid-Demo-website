@@ -1,0 +1,16 @@
+.git
+.publish-repo
+.venv
+.local-deps
+.data
+.env
+__pycache__
+test-results
+audit-2026-10-17
+backups
+dist
+assets/Aluva_Nest_Global_Villa
+assets/Kumbalangi_Villa
+*.png
+*.jpg
+!assets/**

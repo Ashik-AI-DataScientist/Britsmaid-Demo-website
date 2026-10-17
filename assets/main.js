@@ -1,4 +1,4 @@
-// Britsmaid prototype — client-side only, no backend. Mobile menu, listing filters, revenue estimator.
+// Shared public navigation, accessible motion and server-rendered collection filters.
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -25,7 +25,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   var page = location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('nav a').forEach(function (link) {
-    if (link.getAttribute('href') === page) link.setAttribute('aria-current', 'page');
+    var target = new URL(link.href, location.href);
+    if ((!target.hash && target.pathname === location.pathname) || (location.pathname.startsWith('/stays/') && target.pathname === '/stay.html')) link.setAttribute('aria-current', 'page');
   });
   var iconPaths = [
     '<path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path class="icon-detail" d="M9 21v-8h6v8"/>',
@@ -78,6 +79,9 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       if (countEl) countEl.textContent = visible + ' propert' + (visible === 1 ? 'y' : 'ies') + ' found';
+      var empty = document.querySelector('.filter-empty');
+      if (!empty) { empty = document.createElement('p'); empty.className = 'filter-empty note'; empty.setAttribute('role', 'status'); empty.textContent = 'No homes match these filters. Try another location or reset your search.'; document.querySelector('.properties').after(empty); }
+      empty.hidden = visible > 0;
     }
 
     [locationSel, bedroomsSel, guestsSel].forEach(function (el) {
