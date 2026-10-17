@@ -375,10 +375,6 @@ def contacts(source,s):
     source=source.replace('</body>','<script src="/assets/privacy.js"></script></body>')
     source=source.replace('</head>','<link rel="stylesheet" href="/assets/privacy.css"></head>')
     source=source.replace('<script src="/assets/guest.js">','<script src="/assets/guest-registration.js"></script><script src="/assets/guest.js">')
-    if 'class="earnings-form"' in source:
-        fields='<div class="field"><label for="calc-owner">Your name *</label><input id="calc-owner" name="owner_name" required maxlength="120" autocomplete="name"></div><div class="field"><label for="calc-phone">Mobile · include country code</label><input id="calc-phone" name="phone" type="tel" placeholder="+91 …" autocomplete="tel"></div><div class="field"><label for="calc-email">Email</label><input id="calc-email" name="email" type="email" autocomplete="email"></div>'
-        source=source.replace('<div class="field"><label for="calc-location">',fields+'<div class="field"><label for="calc-location">')
-        source=source.replace('<button class="submit-btn" type="submit">Calculate potential revenue', '<label class="consent-row"><input type="checkbox" name="consent" required><span>I agree to Britsmaid saving my details and property scenario to respond about management and a proposal. A mobile number or email is required. <a href="/privacy-policy.html">Privacy policy</a>.</span></label><p class="roi-status" role="status"></p><button class="submit-btn" type="submit">Calculate potential revenue')
     source=source.replace('<script src="/assets/enquiries.js">','<script>window.BritsmaidConfig=Object.assign(window.BritsmaidConfig||{},{leadEndpoint:"/api/leads",appsScriptUrl:null});</script><script src="/assets/lead-client.js"></script><script src="/assets/enquiries.js">')
     source=source.replace('<span>BRITSMAID<small>','<span>'+html.escape(s['site_name'].upper())+'<small>')
     source=source.replace('https://wa.me/919747083777','https://wa.me/'+s['whatsapp']).replace('tel:+919747083777','tel:+'+s['whatsapp']).replace('+91 97470 83777',html.escape(s['phone'])).replace('contact@britsmaid.in',html.escape(s['email']))

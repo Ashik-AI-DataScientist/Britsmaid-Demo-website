@@ -39,6 +39,15 @@ def install(app,db,admin_required,text,now,record,enforce_public,prior,contact):
         required=[] if kind=='roi' else ['property_type','contact_method','contact_time']
         required+=['size','size_unit','title_status','reason','timeline','listed_elsewhere','open_to_interim_management'] if kind=='sale' else ([] if kind=='roi' else ['bedrooms','furnished','current_status','main_goal'])
         if any(not answers.get(k) for k in required):raise ValueError('Complete the required proposal details.')
+        if 'amenities' in answers and (not isinstance(answers['amenities'],list) or len(answers['amenities'])>6 or any(not isinstance(a,str) or a not in AMENITIES for a in answers['amenities'])):raise ValueError('Choose valid property amenities.')
+        if kind in ('management','proposal'):
+            rooms=answers['bedrooms']
+            if not re.fullmatch(r'\d+',rooms) or not 1<=int(rooms)<=30:raise ValueError('Enter a whole number of bedrooms between 1 and 30.')
+            for field,maximum in (('land_cents',100000),('built_up_sqft',1000000)):
+                if answers.get(field):
+                    try:number=float(answers[field])
+                    except ValueError:raise ValueError('Enter a valid land extent or built-up area.')
+                    if not math.isfinite(number) or not 0<=number<=maximum:raise ValueError('Enter a valid land extent or built-up area.')
         choices={'property_type':('Villa','Independent house','Apartment','Homestay','Land','Other'),'furnished':('Fully furnished','Partly furnished','Unfurnished'),'current_status':('Vacant','Self-managed','With another manager','Listed on Airbnb / Booking.com'),'main_goal':('Earn from short-term stays','Find a long-term tenant','Full property care','Explore my options'),'contact_method':('Email','WhatsApp','Phone call'),'contact_time':('Morning (9am–12pm IST)','Afternoon (12pm–5pm IST)','Evening (5pm–8pm IST)','Any time during business hours'),'listed_elsewhere':('Yes','No'),'open_to_interim_management':('Yes','No')}
         if any(answers.get(k) and answers[k] not in options for k,options in choices.items()):raise ValueError('Choose one of the available form options.')
         if kind=='sale':

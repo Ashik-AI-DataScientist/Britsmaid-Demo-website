@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Accessible navigation and shared animated line icons.
   var menuBtn = document.querySelector('.menu-btn');
-  var navEl = document.querySelector('nav');
+  var navEl = document.querySelector('header nav');
   if (menuBtn && navEl) {
     navEl.id = 'primary-navigation';
     menuBtn.setAttribute('aria-controls', navEl.id);
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
       menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     });
     navEl.addEventListener('click', function (event) { if (event.target.closest('a')) closeMenu(); });
-    document.addEventListener('keydown', function (event) { if (event.key === 'Escape') { closeMenu(); menuBtn.focus(); } });
+    document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && navEl.classList.contains('open')) { closeMenu(); menuBtn.focus(); } });
     window.addEventListener('resize', function () { if (window.innerWidth > 860) closeMenu(); });
   }
   var page = location.pathname.split('/').pop() || 'index.html';

@@ -3,7 +3,7 @@
 ## What works locally now
 
 - Booking enquiries remain separate under **Bookings**. Pending requests do not reserve dates.
-- The ROI calculator collects name, phone or email, location, property scenario and consent. Clicking Calculate saves an ROI lead; calculations alone without a valid submitted form do not create a record. The server recalculates the illustrative revenue rather than trusting a browser-supplied amount.
+- The ROI calculator is anonymous: it asks only for property details and creates no lead on calculation. A dismissible invitation appears after the first result and a permanent proposal button remains below the estimate. Calculator details carry into the tailored-proposal form; only its completed, consented submission creates a lead. The server recalculates the illustrative revenue from the submitted property details.
 - **Partner with us**, **Request my tailored proposal**, and **Sell your property** submissions go to the first-party CRM. The proposal button passes property scenario values, not contact details, in the URL. Complete answers, enquiry type, source page and consent version are retained.
 - **CRM** provides search, type/stage filters, assignment, notes, follow-up dates in India time and a chronological history. Stages: New, Contacted, Assessment, Proposal sent, Negotiation, Won and Lost. Overdue follow-ups are highlighted. Email/push reminders and automatic notifications are not connected.
 - Submissions return a reference. Retries with the same request ID and answers return the same reference. WhatsApp/email drafts remain available after a proposal is saved. Opening a draft does not send it.
@@ -25,7 +25,7 @@ The encryption key is stored in `.data/private-id-key`, or can be supplied as th
 
 ## Cookies
 
-Visitors see a first-visit notice with **Use essential only** and **Cookie settings**. They can reopen settings from the footer. Essential session cookies protect submissions/admin login. The preference is stored in this browser's local storage for 180 days. Analytics and advertising choices are disabled because no such trackers are installed. Adding Google Analytics later requires a measurement ID, a consent-aware loader and an updated notice; ticking a box today does not activate analytics.
+Visitors see a first-visit notice with **Use essential only** and **Cookie settings**. They can reopen settings from the footer. Essential session cookies protect submissions/admin login. The cookie preference is stored in this browser's local storage for 180 days. Calculator property values (no contact details) and dismissal of the proposal prompt are kept in tab session storage for up to 30 minutes to support the handoff. Analytics and advertising choices are disabled because no such trackers are installed. Adding Google Analytics later requires a measurement ID, a consent-aware loader and an updated notice; ticking a box today does not activate analytics.
 
 ## Connect the Emergent app later
 
@@ -47,3 +47,5 @@ No Emergent app code has been changed or connected in this turn. The versioned a
 `python tests/test_crm_guests.py` checks lead capture, consent, server calculations, pipeline edit conflicts, all owner form types, encrypted ID access, minor/guardian validation, invalid-image rejection and expiry.
 
 `node tests/verify_crm_guests.cjs` uses an isolated local database and fabricated ID images for the complete browser flow and mobile/desktop layouts. No real messages, ID documents, CRM accounts or cloud writes are used.
+
+CRM refreshes every 20 seconds while visible and immediately when the window regains focus. Public GitHub showcase records use browser-local storage with a 24-hour expiry so demo leads can appear across tabs in the same browser. This is simulated, never the real database; use fictional details and Reset demo to clear them.

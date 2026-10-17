@@ -2,14 +2,17 @@
 'use strict';
 (function(){
  const base=new URL('../',document.currentScript.src).pathname.replace(/\/$/,''),key='britsmaid-public-showcase-v1',seed=window.BritsmaidShowcaseSeed;
- let state;try{state=JSON.parse(sessionStorage.getItem(key));}catch(e){}if(!state||state.version!==seed.version)state=structuredClone(seed);
- const save=()=>{try{sessionStorage.setItem(key,JSON.stringify(state));}catch(e){}};
+ function readState(){try{const saved=JSON.parse(localStorage.getItem(key));return saved?.version===seed.version&&Date.now()-saved.saved_at<86400000&&Array.isArray(saved.leads)&&Array.isArray(saved.content?.properties)&&Array.isArray(saved.operations?.bookings)?saved:null;}catch(e){return null;}}
+ let state=readState()||structuredClone(seed);
+ const save=()=>{state.saved_at=Date.now();try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}};
+ window.addEventListener('storage',event=>{if(event.key===key)state=readState()||structuredClone(seed);});
  const stamp=()=>new Date().toISOString(),id=p=>p+'-DEMO-'+crypto.randomUUID().slice(0,8).toUpperCase();
  const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});
  const error=message=>json({error:message},400);
  const remember=(d,create)=>{const previous=state.receipts[d.request_id];if(previous)return previous;const result=create();state.receipts[d.request_id]=result;save();return result;};
  const nativeFetch=window.fetch.bind(window);
  window.fetch=async function(input,options={}){
+  const latest=readState();if(latest&&latest.saved_at>(state.saved_at||0))state=latest;
   let route=new URL(typeof input==='string'?input:input.url,location.href).pathname;if(base&&route.startsWith(base+'/'))route=route.slice(base.length);
   if(!route.startsWith('/api/')&&!route.startsWith('/admin/api/'))return nativeFetch(input,options);
   let d={};try{d=options.body instanceof FormData?JSON.parse(options.body.get('payload')||'{}'):JSON.parse(options.body||'{}');}catch(e){return error('Invalid demonstration request.');}
@@ -20,7 +23,7 @@
   if(route==='/admin/api/operations'&&!post){state.operations.bookings.forEach(b=>b.conflicts=[]);return json(state.operations);}
   if(route==='/admin/api/leads'&&!post)return json({leads:state.leads,stages:state.stages});
   if(route.startsWith('/api/availability/')){const pid=route.split('/').pop();return json({blocks:state.operations.bookings.filter(b=>b.property_id===pid&&b.status==='confirmed').map(b=>({start:b.check_in,end:b.check_out})),calendar:{configured:false,needs_review:false,feed_count:0},checkout_exclusive:true,timezone:'Asia/Kolkata'});}
-  if(route==='/api/leads'&&post){if(!d.answers?.owner_name||!(d.answers.email||d.answers.phone))return error('Enter a fictional name and email or phone for the demo.');return json(remember(d,()=>{const reference=id('LEAD'),a=d.answers;let estimate=null;try{estimate=window.BritsmaidEarnings.calculate(a);}catch(e){}state.leads.unshift({id:reference,kind:d.form_type,data:{answers:a,source_page:d.source_page,estimate},stage:'new',assigned_to:'',follow_up:'',version:1,created_at:stamp(),updated_at:stamp(),history:[{actor:'Public showcase',action:'Demo enquiry received',note:'Simulated in this browser tab only.',created_at:stamp()}]});return {accepted:true,reference,submission_id:reference,estimate};}));}
+  if(route==='/api/leads'&&post){if(!d.answers?.owner_name||!(d.answers.email||d.answers.phone))return error('Enter a fictional name and email or phone for the demo.');return json(remember(d,()=>{const reference=id('LEAD'),a=d.answers;let estimate=null;try{estimate=window.BritsmaidEarnings.calculate(a);}catch(e){}state.leads.unshift({id:reference,kind:d.form_type,data:{answers:a,source_page:d.source_page,estimate},stage:'new',assigned_to:'',follow_up:'',version:1,created_at:stamp(),updated_at:stamp(),history:[{actor:'Public showcase',action:'Demo enquiry received',note:'Simulated in this browser only; cleared after 24 hours or Reset demo.',created_at:stamp()}]});return {accepted:true,reference,submission_id:reference,estimate};}));}
   if(route==='/api/bookings'&&post)return json(remember(d,()=>{const reference=id('BM');state.operations.bookings.unshift({...d,id:reference,version:1,status:'requested',payment_status:'not_requested',payment_url:'',amount:'',team_notes:'',source:'Public showcase',created_at:stamp(),updated_at:stamp(),conflicts:[],guest_manifest:(d.guest_manifest||[]).map(g=>({...g,review_status:'pending',document_available:false})),history:[{actor:'Public showcase',action:'Demo request',data:{status:'requested'},created_at:stamp()}]});return {accepted:true,reference,status:'requested'};}));
   if(route==='/api/feedback'&&post)return json(remember(d,()=>{const reference=id('FB');state.content.reviews.unshift({id:reference,name:d.name,quote:d.quote,property_id:d.property_id||null,permission:d.publish_permission,status:'draft',submission_source:'website',source:'Fictional showcase feedback',contact_email:d.email});return {accepted:true,reference};}));
   if(route==='/admin/api/leads'&&post){const lead=state.leads.find(l=>l.id===d.id);if(!lead)return error('Demo lead not found.');lead.history.push({actor:'Showcase visitor',action:lead.stage+' → '+d.stage,note:d.note,created_at:stamp()});Object.assign(lead,{stage:d.stage,assigned_to:d.assigned_to,follow_up:d.follow_up,version:lead.version+1,updated_at:stamp()});save();return json({saved:true});}
@@ -36,8 +39,8 @@
  };
  const notify=message=>{let el=document.querySelector('#showcase-notice');if(!el){el=document.createElement('p');el.id='showcase-notice';el.setAttribute('role','status');document.body.append(el);}el.textContent=message;el.hidden=false;clearTimeout(window.showcaseNoticeTimer);window.showcaseNoticeTimer=setTimeout(()=>el.hidden=true,6500);};
  document.addEventListener('DOMContentLoaded',()=>{
-  const bar=document.createElement('aside');bar.className='showcase-banner';bar.setAttribute('aria-label','Public showcase');bar.innerHTML='<div><strong>Public showcase · sample data</strong><span>Use fictional details. Changes stay in this tab. No real enquiries, ID uploads or payments.</span></div><nav><a href="'+base+'/">Website</a><a href="'+base+'/admin/">Explore studio ↗</a><button type="button">Reset demo</button></nav>';document.body.prepend(bar);
-  bar.querySelector('button').onclick=()=>{sessionStorage.removeItem(key);location.reload();};new ResizeObserver(()=>document.documentElement.style.setProperty('--showcase-height',bar.offsetHeight+'px')).observe(bar);
+  const bar=document.createElement('aside');bar.className='showcase-banner';bar.setAttribute('aria-label','Public showcase');bar.innerHTML='<div><strong>Public showcase · sample data</strong><span>Use fictional details. Demo records stay in this browser for 24 hours. No real submissions, ID uploads or payments.</span></div><nav><a href="'+base+'/">Website</a><a href="'+base+'/admin/">Explore studio ↗</a><button type="button">Reset demo</button></nav>';document.body.prepend(bar);
+  bar.querySelector('button').onclick=()=>{try{localStorage.removeItem(key);sessionStorage.removeItem(key);}catch(e){}location.reload();};new ResizeObserver(()=>document.documentElement.style.setProperty('--showcase-height',bar.offsetHeight+'px')).observe(bar);
   function protect(){
    document.querySelectorAll('input[type=file]').forEach(el=>{if(!el.disabled)el.disabled=true;if(!el.nextElementSibling?.classList.contains('showcase-upload-note')){const note=document.createElement('small');note.className='showcase-upload-note';note.textContent='Uploads are disabled in the public showcase. Do not use real identity documents.';el.after(note);}});
    document.querySelectorAll('a[href^="/"]').forEach(a=>{const href=a.getAttribute('href');if(!href.startsWith('//')&&!href.startsWith(base+'/'))a.setAttribute('href',base+href);});
@@ -45,9 +48,9 @@
   new MutationObserver(protect).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});protect();
   document.addEventListener('click',event=>{const a=event.target.closest('a');if(!a)return;const route=new URL(a.href,location.href).pathname;
    if(a.closest('.booking-sharing,.enquiry-share,#booking-message-actions')||route.endsWith('/admin/backup')||route.includes('/admin/api/guest-documents/')){event.preventDefault();notify('Showcase only: nothing is sent, downloaded or paid. Deploy the backend to use this action.');}
-   if(a.textContent.includes('View stay')&&!seed.content.properties.some(p=>route.endsWith('/stays/'+p.slug))){event.preventDefault();notify('This demo edit is saved in your browser tab. Publishing new property pages requires the backend.');}
+   if(a.textContent.includes('View stay')&&!seed.content.properties.some(p=>route.endsWith('/stays/'+p.slug))){event.preventDefault();notify('This demo edit is saved in your browser. Publishing new property pages requires the backend.');}
   },true);
   document.addEventListener('submit',event=>{if(event.target.action?.includes('/admin/logout')){event.preventDefault();location.href=base+'/';}},true);
-  document.querySelectorAll('.booking-enquiry .booking-status,.lead-form .form-status,.roi-status').forEach(el=>new MutationObserver(()=>{const old=el.textContent,value=old.replace('Your enquiry is saved.','Demo enquiry saved in this tab only.').replace('Your property enquiry is saved.','Demo property enquiry saved in this tab only.').replace('Your enquiry has been received.','Demo enquiry saved in this tab only.');if(value!==old)el.textContent=value;}).observe(el,{childList:true}));
+  document.querySelectorAll('.booking-enquiry .booking-status,.lead-form .form-status,.roi-status').forEach(el=>new MutationObserver(()=>{const old=el.textContent,value=old.replace('Your enquiry is saved.','Demo enquiry saved in this browser only.').replace('Your property enquiry is saved.','Demo property enquiry saved in this browser only.').replace('Your enquiry has been received.','Demo enquiry saved in this browser only.');if(value!==old)el.textContent=value;}).observe(el,{childList:true}));
  });
 })();

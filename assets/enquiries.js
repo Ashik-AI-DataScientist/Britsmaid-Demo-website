@@ -17,29 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
     hero.addEventListener('pointerleave', resetMotion);
     reduced.addEventListener('change', resetMotion);
   }
-  document.querySelectorAll('.earnings-form').forEach(function (form) {
-    var roiRequestId=crypto.randomUUID();
-    form.addEventListener('submit', async function (event) {
-      event.preventDefault();
-      if(form.elements.phone){form.elements.phone.setCustomValidity(!form.elements.phone.value.trim()&&!form.elements.email.value.trim()?'Please provide a mobile number or email.':'');}
-      if (!form.reportValidity()) return;
-      var data = new FormData(form);
-      var input = {location: data.get('location').trim(), bedrooms: Number(data.get('bedrooms')), land_cents: Number(data.get('land_cents') || 0), amenities: data.getAll('amenities')};
-      var estimate = window.BritsmaidEarnings.calculate(input);
-      var result = form.parentElement.querySelector('.estimator-result');
-      result.hidden = false;
-      var money = function (n) { return '₹' + n.toLocaleString('en-IN'); };
-      result.querySelector('.range').textContent = money(estimate.low) + ' – ' + money(estimate.high) + ' / month';
-      result.querySelector('.assumptions').textContent = 'Illustrative nightly rate: ' + money(estimate.nightly) + '; 30-day month at 45–60% occupancy. Bedroom base plus amenity premiums (combined uplift capped at 45%); land uplift capped at 5%. Location is not used in this estimate.';
-      var link = result.querySelector('.calculator-proposal');
-      var params = new URLSearchParams({source:'tailored_proposal',bedrooms: input.bedrooms, location: input.location, land_cents: input.land_cents, amenities: input.amenities.join(',')});
-      link.href = 'partner-with-us.html?' + params.toString() + '#enquiry';
-      // Keep only property scenario data in memory, never contact information in storage.
-      window.BritsmaidScenario = {input: input, estimate: estimate};
-      if(window.BritsmaidLeads&&form.elements.owner_name){const status=form.querySelector('.roi-status'),button=form.querySelector('[type=submit]');button.disabled=true;status.textContent='Saving your property enquiry…';try{const receipt=await window.BritsmaidLeads.submit({submission_id:roiRequestId,form_type:'roi',source_page:location.pathname,answers:{...input,owner_name:data.get('owner_name').trim(),phone:data.get('phone').trim(),email:data.get('email').trim()}});status.textContent='Your property enquiry is saved. Reference: '+receipt.reference;}catch(error){status.textContent='Estimate shown, but your enquiry was not saved: '+error.message;}finally{button.disabled=false;}}
-    });
-    form.addEventListener('input', function () { roiRequestId=crypto.randomUUID();if(form.elements.phone)form.elements.phone.setCustomValidity('');form.parentElement.querySelector('.estimator-result').hidden = true; window.BritsmaidScenario = null; });
-  });
+  // The calculator and proposal handoff live in calculator-flow.js. Calculation never submits a lead.
   document.querySelectorAll('.lead-form').forEach(function (form) {
     var phone = form.elements.phone;
     var email = form.elements.email;
@@ -63,41 +41,37 @@ document.addEventListener('DOMContentLoaded', function () {
         lines.push(label + ': ' + (Array.isArray(value) ? value.join(', ') || 'None' : value || 'Not provided'));
       });
       if (draft.calculator) lines.push('Illustrative monthly gross revenue: INR ' + draft.calculator.estimate.low + '–' + draft.calculator.estimate.high + ' (not guaranteed)');
-      lines.push('Enquiry reference: ' + draft.submission_id);
+      lines.push('Enquiry reference: ' + (draft.reference||draft.submission_id));
       var message = lines.join('\n');
       whatsappShare.href = 'https://wa.me/' + ((window.BritsmaidContact || {}).whatsapp || '919747083777') + '?text=' + encodeURIComponent(message);
       emailShare.href = 'mailto:' + ((window.BritsmaidContact || {}).email || 'contact@britsmaid.in') + '?subject=' + encodeURIComponent('Britsmaid ' + draft.form_type + ' property enquiry') + '&body=' + encodeURIComponent(message);
       shareRow.hidden = false;
-    }
-    if (form.dataset.formType === 'management') {
-      var params = new URLSearchParams(location.search);
-      ['bedrooms', 'location', 'land_cents'].forEach(function (key) { if (params.has(key)) form.elements[key].value = params.get(key); });
-      if (params.has('amenities')) form.querySelectorAll('[name="amenities"]').forEach(function (checkbox) { checkbox.checked = params.get('amenities').split(',').includes(checkbox.value); });
-      try {
-        if (params.has('bedrooms')) window.BritsmaidScenario = {input: {bedrooms: Number(params.get('bedrooms')), location: params.get('location'), land_cents: Number(params.get('land_cents') || 0), amenities: (params.get('amenities') || '').split(',')}, estimate: window.BritsmaidEarnings.calculate({bedrooms: Number(params.get('bedrooms')), land_cents: Number(params.get('land_cents') || 0), amenities: (params.get('amenities') || '').split(',')})};
-      } catch (error) { window.BritsmaidScenario = null; }
     }
     function validateContact() {
       form.querySelectorAll('input[type="text"][required]').forEach(function (input) { input.setCustomValidity(input.value.trim() ? '' : 'Please complete this field.'); });
       phone.setCustomValidity(''); email.setCustomValidity('');
       var p = phone.value.trim(), e = email.value.trim();
       if (!p && !e) phone.setCustomValidity('Please provide a mobile number or an email address.');
-      else if (p && (!/^\+?[\d\s().-]+$/.test(p) || p.replace(/\D/g, '').length < 7 || p.replace(/\D/g, '').length > 15)) phone.setCustomValidity('Please enter a valid mobile number (7–15 digits).');
+      else if (p && (!/^\+[\d\s().-]+$/.test(p) || p.replace(/\D/g, '').length < 7 || p.replace(/\D/g, '').length > 15)) phone.setCustomValidity('Include + and your country code, followed by 7–15 digits, for example +91.');
       if (method.value === 'Email' && !e) email.setCustomValidity('Please provide your email address for email contact.');
       if ((method.value === 'WhatsApp' || method.value === 'Phone call') && !p) phone.setCustomValidity('Please provide a mobile number for your selected contact method.');
     }
-    form.addEventListener('input', function () { validateContact(); draft = null; download.hidden = true; shareRow.hidden = true; status.textContent = ''; });
+    var submitting=false,revision=0,savedRevision=-1;
+    function changed(){revision++;validateContact();draft=null;download.hidden=true;shareRow.hidden=true;status.textContent='';}
+    form.addEventListener('input',changed);
+    form.addEventListener('proposal:prefilled',changed);
     form.addEventListener('change', validateContact);
     form.querySelector('[type="submit"]').addEventListener('click', validateContact);
     form.addEventListener('submit', async function (event) {
       event.preventDefault(); validateContact();
-      if (!form.reportValidity()) return;
+      if (submitting || !form.reportValidity()) return;
+      if(savedRevision===revision&&draft){status.textContent='This enquiry is already saved. Reference: '+draft.reference;return;}
       var formData = new FormData(form);
       var answers = Object.fromEntries(formData.entries());
       if (form.dataset.formType === 'management') answers.amenities = formData.getAll('amenities');
       Object.keys(answers).forEach(function (key) { if (typeof answers[key] === 'string') answers[key] = answers[key].trim(); });
       draft = {submission_id: draft ? draft.submission_id : crypto.randomUUID(), form_type: form.dataset.formType, source_page: location.pathname, submitted_at: new Date().toISOString(), consent: {accepted: true, policy: 'privacy-policy.html', captured_at: new Date().toISOString()}, answers: answers};
-      if(draft.form_type==='management'&&new URLSearchParams(location.search).get('source')==='tailored_proposal')draft.form_type='proposal';
+      if(draft.form_type==='management'&&(form.dataset.leadSource==='calculator'||new URLSearchParams(location.search).get('source')==='tailored_proposal'))draft.form_type='proposal';
       // Derive the attached estimate from the actual enquiry fields so edits cannot leave a stale scenario.
       if (form.dataset.formType === 'management') {
         var input = {bedrooms: Number(answers.bedrooms), land_cents: Number(answers.land_cents || 0), location: answers.location, amenities: answers.amenities};
@@ -108,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
         status.textContent = 'Your completed enquiry is ready. It has not been sent. Choose WhatsApp or email below and press Send in your app, or download a copy.';
         download.hidden = false; return;
       }
-      var button = form.querySelector('[type="submit"]'); button.disabled = true; status.textContent = 'Sending your enquiry…';
+      var button = form.querySelector('[type="submit"]'),sentDraft=draft,sentRevision=revision;submitting=true;button.disabled=true;status.textContent='Sending your enquiry…';
       try {
         var receipt;
         if (window.BritsmaidConfig.leadEndpoint && window.BritsmaidLeads) receipt=await window.BritsmaidLeads.submit(draft);
@@ -119,10 +93,11 @@ document.addEventListener('DOMContentLoaded', function () {
         receipt = await response.json();
         }
         if (!receipt.accepted || !receipt.submission_id) throw new Error('Missing confirmation');
-        status.textContent = 'Thank you. Your enquiry has been received. Reference: ' + receipt.submission_id;
-        prepareShare();download.hidden=false;
-      } catch (error) { prepareShare(); status.textContent = 'We could not confirm delivery. Please send your enquiry via WhatsApp or email below, or download a copy.'; download.hidden = false; }
-      finally { button.disabled = false; }
+        sentDraft.reference=receipt.submission_id;
+        if(revision===sentRevision){savedRevision=revision;status.textContent='Thank you. Your enquiry has been received. Reference: '+receipt.submission_id;prepareShare();download.hidden=false;}
+        else status.textContent='Your previous answers were saved. Reference: '+receipt.submission_id+'. Your latest edits have not been submitted.';
+      } catch (error) {if(revision===sentRevision){draft=sentDraft;prepareShare();download.hidden=false;}status.textContent='Your enquiry has not been confirmed as saved. '+(error.message||'Please retry.')+' You can also use WhatsApp or email below.';}
+      finally {submitting=false;button.disabled=false;}
     });
     download.addEventListener('click', function () {
       if (!draft) return;

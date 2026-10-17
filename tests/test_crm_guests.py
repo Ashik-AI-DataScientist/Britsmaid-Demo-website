@@ -37,6 +37,11 @@ class CRMGuestTests(unittest.TestCase):
             d=self.roi();d['form_type']=kind;d['source_page']='/partner-with-us.html';d['answers'].update(property_type='Villa',contact_method='Email',contact_time='Any time during business hours',furnished='Fully furnished',current_status='Vacant',main_goal='Earn from short-term stays',size='1000',size_unit='Square feet',title_status='Clear title — sole owner',reason='Test sale',timeline='Flexible',listed_elsewhere='No',open_to_interim_management='Yes',description='Property story retained',amenities_notes='Test amenities')
             response=self.guest.post('/api/leads',json=d,headers=self.h);self.assertEqual(response.status_code,200,response.text)
         leads=self.client.get('/admin/api/leads').json['leads'];self.assertEqual({l['kind'] for l in leads},{'management','proposal','sale'});self.assertTrue(all(l['data']['answers']['description']=='Property story retained' for l in leads))
+    def test_invalid_proposal_values_do_not_create_leads(self):
+        for field,value in [('bedrooms','31'),('bedrooms','3.5'),('land_cents','NaN'),('amenities',{'pool':True}),('amenities',['unknown'])]:
+            d=self.roi();d['form_type']='proposal';d['answers'].update(property_type='Villa',contact_method='Email',contact_time='Any time during business hours',furnished='Fully furnished',current_status='Vacant',main_goal='Earn from short-term stays');d['answers'][field]=value
+            self.assertEqual(self.guest.post('/api/leads',json=d,headers=self.h).status_code,400)
+        self.assertEqual(self.client.get('/admin/api/leads').json['leads'],[])
     def booking(self):
         start=operations.today()+timedelta(days=40)
         return dict(request_id=str(uuid.uuid4()),consent=True,property_id='aluva-villa',name='Test adult',phone='',email='guest@example.invalid',check_in=start.isoformat(),check_out=(start+timedelta(days=2)).isoformat(),guests=2,notes='Test only',id_consent=True,guardian_consent=True,guest_manifest=[dict(name='Test adult',minor=False,relationship='Self'),dict(name='Test minor',minor=True,relationship='Daughter',guardian_name='Test adult',guardian_relationship='Father')])
