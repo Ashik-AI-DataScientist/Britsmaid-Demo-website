@@ -12,7 +12,7 @@ files=[]
 for pattern in ('*.html','*.md','*.py','*.ps1'):
     files.extend(ROOT.glob(pattern))
 files.extend(ROOT/name for name in ('.gitignore','.dockerignore','Dockerfile','requirements.txt'))
-for folder in ('assets','cms','templates','tests','google-apps-script'):
+for folder in ('assets','cms','templates','tests','google-apps-script','docs'):
     for file in (ROOT/folder).rglob('*'):
         relative=file.relative_to(ROOT)
         if file.is_file() and not any(part in ('__pycache__','Aluva_Nest_Global_Villa','Kumbalangi_Villa') for part in relative.parts) and file.suffix!='.pyc':files.append(file)
