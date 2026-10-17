@@ -24,9 +24,13 @@ class CRMGuestTests(unittest.TestCase):
         d['consent']=False;self.assertEqual(self.guest.post('/api/leads',json=d,headers=self.h).status_code,400);d['consent']=True
         response=self.guest.post('/api/leads',json=d,headers=self.h);self.assertEqual(response.status_code,200,response.text)
         self.assertEqual(response.json['estimate']['nightly'],7688)
+        self.assertTrue(response.json['reference'].startswith('ENQ-'))
+        self.assertEqual(response.json['submission_id'],response.json['reference'])
         self.assertEqual(self.guest.post('/api/leads',json=d,headers=self.h).json['reference'],response.json['reference'])
         self.assertEqual(self.guest.get('/admin/api/leads').status_code,401)
         lead=self.client.get('/admin/api/leads').json['leads'][0]
+        self.assertTrue(lead['id'].startswith('LEAD-'))
+        self.assertEqual(lead['data']['enquiry_reference'],response.json['reference'])
         update=dict(id=lead['id'],version=lead['version'],stage='proposal_sent',follow_up='2026-12-10T10:00',assigned_to='Test teammate',note='A test follow-up note.')
         self.assertEqual(self.post('/admin/api/leads',update).status_code,200)
         self.assertEqual(self.post('/admin/api/leads',update).status_code,409)

@@ -28,10 +28,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.BritsmaidConfig.leadEndpoint || window.BritsmaidConfig.appsScriptUrl) { form.querySelector('[type=submit]').textContent = 'Submit my property enquiry ↗'; form.querySelector('.note').textContent = 'Submit your answers to our team. You can also prepare a WhatsApp or email message after saving.'; }
     var shareRow = document.createElement('div');
     shareRow.className = 'enquiry-share'; shareRow.hidden = true;
+    var whatsappPrompt = document.createElement('p');
+    whatsappPrompt.className = 'enquiry-whatsapp-prompt';
+    whatsappPrompt.textContent = 'For a faster reply and to chat with our executive, send your completed enquiry via WhatsApp below. Press Send in WhatsApp to deliver your message.';
+    whatsappPrompt.hidden = true; status.after(whatsappPrompt);
     var whatsappShare = document.createElement('a'), emailShare = document.createElement('a');
     whatsappShare.className = 'btn-primary'; whatsappShare.textContent = 'Send enquiry via WhatsApp ↗'; whatsappShare.target = '_blank'; whatsappShare.rel = 'noopener noreferrer';
     emailShare.className = 'btn-secondary'; emailShare.textContent = 'Send enquiry by email ↗';
-    shareRow.append(whatsappShare,emailShare); status.after(shareRow);
+    shareRow.append(whatsappShare,emailShare); whatsappPrompt.after(shareRow);
     function prepareShare() {
       var lines = ['Hello Britsmaid, here is my ' + draft.form_type + ' property enquiry.', ''];
       Object.keys(draft.answers).forEach(function (key) {
@@ -57,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if ((method.value === 'WhatsApp' || method.value === 'Phone call') && !p) phone.setCustomValidity('Please provide a mobile number for your selected contact method.');
     }
     var submitting=false,revision=0,savedRevision=-1;
-    function changed(){revision++;validateContact();draft=null;download.hidden=true;shareRow.hidden=true;status.textContent='';}
+    function changed(){revision++;validateContact();draft=null;download.hidden=true;shareRow.hidden=true;whatsappPrompt.hidden=true;status.textContent='';}
     form.addEventListener('input',changed);
     form.addEventListener('proposal:prefilled',changed);
     form.addEventListener('change', validateContact);
@@ -65,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
     form.addEventListener('submit', async function (event) {
       event.preventDefault(); validateContact();
       if (submitting || !form.reportValidity()) return;
-      if(savedRevision===revision&&draft){status.textContent='This enquiry is already saved. Reference: '+draft.reference;return;}
+      if(savedRevision===revision&&draft){status.textContent='Enquiry submitted. Enquiry reference: '+draft.reference;return;}
       var formData = new FormData(form);
       var answers = Object.fromEntries(formData.entries());
       if (form.dataset.formType === 'management') answers.amenities = formData.getAll('amenities');
@@ -93,9 +97,9 @@ document.addEventListener('DOMContentLoaded', function () {
         receipt = await response.json();
         }
         if (!receipt.accepted || !receipt.submission_id) throw new Error('Missing confirmation');
-        sentDraft.reference=receipt.submission_id;
-        if(revision===sentRevision){savedRevision=revision;status.textContent='Thank you. Your enquiry has been received. Reference: '+receipt.submission_id;prepareShare();download.hidden=false;}
-        else status.textContent='Your previous answers were saved. Reference: '+receipt.submission_id+'. Your latest edits have not been submitted.';
+        sentDraft.reference=String(receipt.reference||receipt.submission_id).replace(/^LEAD-/, 'ENQ-');
+        if(revision===sentRevision){savedRevision=revision;status.textContent='Enquiry submitted. Enquiry reference: '+sentDraft.reference;prepareShare();whatsappPrompt.hidden=false;download.hidden=false;}
+        else status.textContent='Your previous answers were submitted. Enquiry reference: '+sentDraft.reference+'. Your latest edits have not been submitted.';
       } catch (error) {if(revision===sentRevision){draft=sentDraft;prepareShare();download.hidden=false;}status.textContent='Your enquiry has not been confirmed as saved. '+(error.message||'Please retry.')+' You can also use WhatsApp or email below.';}
       finally {submitting=false;button.disabled=false;}
     });

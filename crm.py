@@ -69,11 +69,16 @@ def install(app,db,admin_required,text,now,record,enforce_public,prior,contact):
         conn=db();conn.execute('BEGIN IMMEDIATE')
         try:
             existing,digest=prior(d,'lead',payload)
-            if existing:conn.rollback();return jsonify(existing)
+            if existing:
+                conn.rollback()
+                reference=existing.get('reference',existing.get('submission_id','')).replace('LEAD-','ENQ-',1)
+                return jsonify(dict(existing,reference=reference,submission_id=reference))
             identifier='LEAD-'+secrets.token_hex(5).upper();stamp=now()
+            reference=identifier.replace('LEAD-','ENQ-',1)
+            payload['enquiry_reference']=reference
             conn.execute('INSERT INTO leads(id,kind,data,created_at,updated_at) VALUES(?,?,?,?,?)',(identifier,kind,json.dumps(payload,ensure_ascii=False),stamp,stamp))
             conn.execute('INSERT INTO lead_events(lead_id,actor,action,note,created_at) VALUES(?,?,?,?,?)',(identifier,'website','received','Enquiry saved with consent.',stamp))
-            receipt=dict(accepted=True,submission_id=identifier,reference=identifier,estimate=estimate)
+            receipt=dict(accepted=True,submission_id=reference,reference=reference,estimate=estimate)
             conn.execute('INSERT INTO public_requests VALUES(?,?,?,?,?)',(d['request_id'],'lead',digest,json.dumps(receipt),stamp));record('lead received',identifier);conn.commit();return jsonify(receipt)
         except Exception:conn.rollback();raise
 
