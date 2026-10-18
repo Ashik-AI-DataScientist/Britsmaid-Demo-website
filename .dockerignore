@@ -15,3 +15,8 @@ assets/Kumbalangi_Villa
 *.png
 *.jpg
 !assets/**
+
+previews/
+archive/
+outputs/
+deliverables/

@@ -9,7 +9,7 @@ properties=[]
 for filename,name,location,baths,beds,amenities in [
  ('aluva-villa.html','Aluva Nest Global Villa','Aluva, Kerala',5,4,['Entire private villa','Air conditioning','Spacious living area','Large backyard','Long balcony']),
  ('kumbalangi-villa.html','Divya Villa, Kumbalangi','Kumbalangi, Kochi, Kerala',4,6,['Air-conditioned bedrooms','Fully equipped kitchen','Dining area','Free Wi-Fi','Private parking','Outdoor spaces'])]:
-    source=(root/filename).read_text(encoding='utf-8')
+    source=(root/'pages'/filename).read_text(encoding='utf-8')
     photos=[{'url':'/'+url,'alt':html.unescape(alt)} for url,alt in re.findall(r'<img src="(assets/properties/[^"]+)" alt="([^"]*)"',source)]
     copy=source[source.find('<h2>'):source.find('<aside')].rsplit('</div>',1)[0]
     copy=re.sub(r'<h2>(.*?)</h2>',r'\n\n## \1\n',copy,flags=re.S)

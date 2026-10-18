@@ -1,0 +1,29 @@
+BRITSMAID WEBSITE
+
+START THE WEBSITE
+Double-click Start Britsmaid.cmd and keep its window open.
+Website: http://127.0.0.1:8000/
+Admin:   http://127.0.0.1:8000/admin
+Local login details: .data/local-login.txt (private; never share or publish).
+
+WHERE THINGS ARE
+pages          Public page source files; view through the running website.
+templates      Dynamic property, feedback and admin screens.
+assets         Public pictures, logos, styles and JavaScript.
+guides         Setup and operating instructions.
+cms            Backup, export and publishing tools.
+tests          Current automated checks.
+docs           Generated GitHub Pages demonstration.
+deliverables   Finished business reports and documents.
+previews       Website screenshots, kept out of GitHub.
+archive        Older checks and integration screenshots, kept out of GitHub.
+.data          Private database, uploads and login files. Do not move or delete.
+
+The backend Python files and both launchers remain at the top level.
+Do not upload the entire project folder through GitHub's browser uploader.
+Use the reviewed publishing process described in README.md and guides.
+
+The Railway agency website has a separate admin and database.
+The separate mobile app's node_modules folder is not part of this website.
+The separate app now lives at C:\Users\HP\Projects\Britsmaid\App, outside OneDrive.
+Its development preview was stopped for the move; reopen the app from that new location.

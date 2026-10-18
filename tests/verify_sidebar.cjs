@@ -14,7 +14,7 @@ const fs=require('fs'),assert=require('assert');
   await page.locator('[data-tab=settings]').click();assert(await page.locator('#tab-settings').isVisible());
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  }
- await page.setViewportSize({width:960,height:480});await page.locator('.sidebar-bottom button').focus();await page.screenshot({path:'preview-sidebar-short.png'});
+ await page.setViewportSize({width:960,height:480});await page.locator('.sidebar-bottom button').focus();await page.screenshot({path:require('./paths.cjs').preview('preview-sidebar-short.png')});
  await page.setViewportSize({width:390,height:700});await page.locator('[data-tab=settings]').focus();assert.equal(await page.locator('.studio-sidebar').evaluate(el=>getComputedStyle(el).position),'relative');assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  assert.deepEqual(errors,[]);console.log('PASS: independent sidebar wheel scrolling, bottom actions and Settings accessible at four desktop heights (including reduced viewport for zoom), keyboard focus, mobile navigation and no horizontal overflow. No content changed.');
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

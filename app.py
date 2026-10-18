@@ -359,7 +359,7 @@ def description_blocks(value):
     flush();return blocks
 
 def shell_parts():
-    source=(ROOT/'index.html').read_text(encoding='utf-8')
+    source=(ROOT/'pages'/'index.html').read_text(encoding='utf-8')
     return re.search(r'<header>.*?</header>',source,re.S).group(),re.search(r'<footer.*?</footer>',source,re.S).group()
 
 def seo_document(source,title,description,canonical,image=None,schema=None):
@@ -399,7 +399,7 @@ def replace_collection(source, replacement):
     raise RuntimeError('The property collection markup is incomplete.')
 
 def render_public(name):
-    s=settings();source=(ROOT/name).read_text(encoding='utf-8');props=property_rows()
+    s=settings();source=(ROOT/'pages'/name).read_text(encoding='utf-8');props=property_rows()
     public_reviews=reviews_for()
     for p in props:p['review_summary']=rating_summary([r for r in public_reviews if r['property_id']==p['id']])
     cards=render_template('cards.html',properties=props)
