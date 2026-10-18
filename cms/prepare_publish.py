@@ -9,7 +9,7 @@ ROOT=Path(__file__).resolve().parents[1]
 TARGET=ROOT/'.publish-repo'
 if not (TARGET/'.git').is_dir():raise RuntimeError('Clone the existing repository into .publish-repo first.')
 files=[]
-for pattern in ('*.html','*.md','*.py','*.ps1'):
+for pattern in ('*.html','*.md','*.py','*.ps1','*.cmd'):
     files.extend(ROOT.glob(pattern))
 files.extend(ROOT/name for name in ('.gitignore','.dockerignore','Dockerfile','requirements.txt'))
 for folder in ('assets','cms','templates','tests','google-apps-script','docs'):

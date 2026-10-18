@@ -1,4 +1,5 @@
 """Moderated public feedback, manual booking operations, and private OTA calendars."""
+from review_ratings import rating_value
 import hashlib
 import io
 import ipaddress
@@ -199,13 +200,13 @@ def install(app,db,admin_required,settings,properties,text,now,record,csrf,shell
         if experience not in ('guest','visitor'):raise ValueError('Choose the feedback type.')
         property_id=d.get('property_id') or None
         if property_id:one_property(property_id,True)
-        payload=dict(name=name,quote=quote,email=email,experience_type=experience,property_id=property_id,permission=d.get('publish_permission') is True)
+        payload=dict(name=name,quote=quote,email=email,experience_type=experience,property_id=property_id,rating=rating_value(d.get('rating'),required=True),permission=d.get('publish_permission') is True)
         conn=db();conn.execute('BEGIN IMMEDIATE')
         try:
             existing,digest=prior(d,'feedback',payload)
             if existing:conn.rollback();return jsonify(existing)
             identifier=secrets.token_hex(12)
-            review={**payload,'contact_email':payload['email'],'original_quote':quote,'status':'draft','source':'Guest feedback' if experience=='guest' else 'Website visitor feedback','source_url':'','stay_month':'','submitted_at':now(),'consent_version':'feedback-v1','submission_source':'website'}
+            review={**payload,'contact_email':payload['email'],'original_quote':quote,'original_rating':payload['rating'],'status':'draft','source':'Guest feedback' if experience=='guest' else 'Website visitor feedback','source_url':'','stay_month':'','submitted_at':now(),'consent_version':'feedback-v2','submission_source':'website'}
             # Contact information remains in the authenticated admin record only, not public markup.
             review.pop('email',None)
             conn.execute('INSERT INTO reviews VALUES(?,?,?,?)',(identifier,property_id,json.dumps(review,ensure_ascii=False),now()))

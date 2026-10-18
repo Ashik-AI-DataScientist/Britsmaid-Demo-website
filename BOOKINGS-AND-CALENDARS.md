@@ -6,7 +6,9 @@ These features run in the Python app, including the local preview. They cannot r
 
 Visitors use **Leave feedback** in the footer or on a property page. They can identify their feedback as a stay experience or website/service feedback. Name and feedback are required; property and private reply email are optional. Storage consent is required. Separate publication permission is optional and unchecked.
 
-Every submission enters **Reviews** as awaiting review. Admins can read, edit and publish with permission, or keep it private. **Unpublish review** removes a published review from the public pages while retaining it in the studio. Contact email and the original submission are retained privately. These are moderated testimonials, not verified-booking ratings.
+Visitors choose a required whole-number rating from 1 to 5, with no preselected score. The homepage has a prominent feedback invitation; each property has a review link near its title and in its guest-review section. The property is preselected when following its link.
+
+Every submission enters **Reviews** as awaiting review. Admins can read, edit and publish with permission, or keep it private. **Unpublish review** removes a published review from the public pages while retaining it in the studio. Contact email and the original submission are retained privately. Each property shows published stay reviews, their scores, a one-decimal average out of 5 and the rated-review count on its cards and detail page. Only published, permissioned stay ratings for that property count; general website/service feedback and unrated older reviews do not affect its average. Unpublishing removes a review from public display and the average on the next page load. No ratings are invented for older reviews. These are moderated testimonials, not verified-booking ratings.
 
 ## Booking enquiry and confirmation
 

@@ -15,6 +15,7 @@ import mimetypes
 import os
 import re
 import secrets
+from review_ratings import rating_value, rating_summary
 import sqlite3
 import time
 from datetime import datetime, timezone, timedelta
@@ -148,7 +149,9 @@ def reviews_for(property_id=None, all_reviews=False):
     result=[]
     for row in db().execute('SELECT * FROM reviews ORDER BY updated_at DESC'):
         r=json.loads(row['data']);r['id']=row['id'];r['property_id']=row['property_id']
-        if (all_reviews or r.get('status')=='published') and (not property_id or r['property_id']==property_id): result.append(r)
+        try:r['rating']=rating_value(r.get('rating'))
+        except ValueError:r['rating']=None
+        if (all_reviews or r.get('status')=='published' and r.get('permission') is True) and (not property_id or r['property_id']==property_id and r.get('experience_type','guest')=='guest'): result.append(r)
     return result
 
 def text(value, limit=2000):
@@ -265,6 +268,7 @@ def save_review():
     if d.get('id') and not db().execute('SELECT 1 FROM reviews WHERE id=?',(identifier,)).fetchone(): abort(404)
     old=db().execute('SELECT data FROM reviews WHERE id=?',(identifier,)).fetchone()
     r=json.loads(old['data']) if old else {}
+    r['rating']=rating_value(d.get('rating',r.get('rating')))
     r.update({k:text(d.get(k,''),limit) for k,limit in [('name',100),('quote',2000),('source',80),('source_url',500),('stay_month',7)]})
     if not r['name'] or not r['quote']: raise ValueError('Guest display name and review text are required.')
     if r['source_url'] and (urlparse(r['source_url']).scheme!='https' or not urlparse(r['source_url']).netloc): raise ValueError('Review source links must use https://.')
@@ -396,6 +400,8 @@ def replace_collection(source, replacement):
 
 def render_public(name):
     s=settings();source=(ROOT/name).read_text(encoding='utf-8');props=property_rows()
+    public_reviews=reviews_for()
+    for p in props:p['review_summary']=rating_summary([r for r in public_reviews if r['property_id']==p['id']])
     cards=render_template('cards.html',properties=props)
     if name in ('index.html','stay.html'):
         source=replace_collection(source,cards)
@@ -406,7 +412,7 @@ def render_public(name):
         if name=='index.html':
             source=source.replace('Exceptional homes.',html.escape(s['hero_title'])).replace('Expertly cared for.',html.escape(s['hero_emphasis'])).replace(DEFAULT_SETTINGS['hero_intro'],html.escape(s['hero_intro']))
             source=source.replace('<section class="hero home-hero no-border">','<section class="hero home-hero no-border" style="--hero-photo:url(\''+html.escape(s['hero_image'],quote=True)+'\')">')
-            reviews=reviews_for();review_section=render_template('reviews.html',reviews=reviews[:6],properties=props) if reviews else ''
+            review_section=render_template('reviews.html',reviews=public_reviews[:6],properties=props)
             source=source.replace('<section id="management">',review_section+'<section id="management">')
             base=s['site_url'];schema={'@context':'https://schema.org','@type':'Organization','name':s['site_name'],'email':s['email'],'telephone':s['phone']}
             if base: schema.update(url=base,logo=base+'/assets/britsmaid-mark.png')
@@ -425,7 +431,8 @@ def villa(slug):
     p=next((x for x in property_rows() if x['slug']==slug),None)
     if not p: abort(404)
     s=settings();header,footer=shell_parts();base=s['site_url'];canonical=base+'/stays/'+slug if base else ''
-    source=render_template('villa.html',p=p,header=header,footer=footer,blocks=description_blocks(p['description']),reviews=reviews_for(p['id']))
+    reviews=reviews_for(p['id']);p['review_summary']=rating_summary(reviews)
+    source=render_template('villa.html',p=p,header=header,footer=footer,blocks=description_blocks(p['description']),reviews=reviews)
     schema={'@context':'https://schema.org','@type':'LodgingBusiness','name':p['name'],'description':p['summary'],'numberOfRooms':p['bedrooms'],'address':{'@type':'PostalAddress','addressLocality':p['location'],'addressCountry':'IN'}}
     if base: schema.update(url=canonical,image=[base+x['url'] for x in p['photos']])
     source=seo_document(source,p.get('seo_title') or p['name']+' | Britsmaid',p.get('seo_description') or p['summary'],canonical,base+p['photos'][0]['url'] if base and p['photos'] else '',schema)

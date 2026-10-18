@@ -10,11 +10,13 @@ document.addEventListener('DOMContentLoaded',function(){
     if(!response.ok||!result.accepted)throw new Error(result.error||'Please check your details and try again.');return result;
   }
   if(feedback){
+    const selectedProperty=new URLSearchParams(location.search).get('property');
+    if(selectedProperty&&Array.from(feedback.elements.property_id.options).some(o=>o.value===selectedProperty))feedback.elements.property_id.value=selectedProperty;
     let requestId=crypto.randomUUID();const output=feedback.querySelector('.feedback-status');
     feedback.addEventListener('input',()=>{requestId=crypto.randomUUID();output.textContent='';});
     feedback.addEventListener('submit',async event=>{
       event.preventDefault();if(!feedback.reportValidity())return;const button=feedback.querySelector('[type=submit]');button.disabled=true;output.classList.remove('error');output.textContent='Sending your feedback…';
-      const d=new FormData(feedback),payload={request_id:requestId,name:d.get('name').trim(),quote:d.get('quote').trim(),email:d.get('email').trim(),property_id:d.get('property_id'),experience_type:d.get('experience_type'),publish_permission:feedback.elements.publish_permission.checked,consent:feedback.elements.consent.checked,website_url:d.get('website_url')};
+      const d=new FormData(feedback),payload={request_id:requestId,name:d.get('name').trim(),quote:d.get('quote').trim(),email:d.get('email').trim(),property_id:d.get('property_id'),experience_type:d.get('experience_type'),rating:Number(d.get('rating')),publish_permission:feedback.elements.publish_permission.checked,consent:feedback.elements.consent.checked,website_url:d.get('website_url')};
       try{const receipt=await submit('/api/feedback',payload);feedback.reset();requestId=crypto.randomUUID();output.textContent='Thank you. Your feedback has reached our team for review. It is not published automatically. Reference: '+receipt.reference;}
       catch(error){output.classList.add('error');output.textContent=error.message;}finally{button.disabled=false;}
     });

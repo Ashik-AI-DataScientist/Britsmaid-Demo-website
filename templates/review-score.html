@@ -1,0 +1,1 @@
+{% if r.rating %}<p class="review-score" aria-label="{{ r.rating }} out of 5"><span class="rating-stars" aria-hidden="true">{{ '★' * r.rating }}{{ '☆' * (5-r.rating) }}</span><span>{{ r.rating }}/5</span></p>{% endif %}

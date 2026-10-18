@@ -34,7 +34,7 @@ class OperationsTests(unittest.TestCase):
         response=self.post('/admin/api/calendars',dict(property_id='aluva-villa',name='Test Airbnb',url='https://www.airbnb.com/calendar/ical/isolated-test.ics',enabled=True))
         self.assertEqual(response.status_code,200,response.text);return response.json['id']
     def test_feedback_is_private_until_approved_and_unpublishable(self):
-        d=dict(request_id=str(uuid.uuid4()),name='Test reviewer',quote='A private test review for moderation.',email='private@example.invalid',experience_type='visitor',property_id='',consent=True,publish_permission=True)
+        d=dict(request_id=str(uuid.uuid4()),name='Test reviewer',quote='A private test review for moderation.',email='private@example.invalid',experience_type='visitor',rating=4,property_id='',consent=True,publish_permission=True)
         self.assertEqual(self.guest.post('/api/feedback',json=d).status_code,403)
         response=self.public('/api/feedback',d);self.assertEqual(response.status_code,200,response.text)
         self.assertEqual(self.public('/api/feedback',d).json['reference'],response.json['reference'])
@@ -47,10 +47,42 @@ class OperationsTests(unittest.TestCase):
         self.assertEqual(self.content()['reviews'][0]['contact_email'],d['email'])
         d['quote']='Changed duplicate';self.assertEqual(self.public('/api/feedback',d).status_code,409)
     def test_feedback_permission_and_contact_validation(self):
-        d=dict(request_id=str(uuid.uuid4()),name='Test',quote='Feedback test only.',email='',experience_type='guest',consent=False,publish_permission=False)
+        d=dict(request_id=str(uuid.uuid4()),name='Test',quote='Feedback test only.',email='',experience_type='guest',rating=5,consent=False,publish_permission=False)
         self.assertEqual(self.public('/api/feedback',d).status_code,400)
         d['consent']=True;self.assertEqual(self.public('/api/feedback',d).status_code,200)
         r=self.content()['reviews'][0];r['status']='published';self.assertEqual(self.post('/admin/api/reviews',r).status_code,400)
+    def test_property_ratings_only_count_published_consented_stay_reviews(self):
+        for score in (5,4):
+            d=dict(request_id=str(uuid.uuid4()),name='Fictional rated guest',quote='A fictional property review for testing.',email='private@example.invalid',experience_type='guest',property_id='aluva-villa',rating=score,consent=True,publish_permission=True)
+            self.assertEqual(self.public('/api/feedback',d).status_code,200)
+        self.assertNotIn('4.5/5',self.guest.get('/stays/aluva-villa').text)
+        reviews=self.content()['reviews']
+        for r in reviews:
+            self.assertEqual(r['original_rating'],r['rating']);r['status']='published';self.assertEqual(self.post('/admin/api/reviews',r).status_code,200)
+        for pid,experience,score in [(None,'guest',1),('aluva-villa','visitor',1),('kumbalangi-villa','guest',2),('aluva-villa','guest',None)]:
+            r=dict(name='Other test review',quote='A separate test review without private details.',property_id=pid,experience_type=experience,rating=score,status='published',permission=True)
+            # Website/service feedback retains its type from the original submission.
+            if experience=='visitor':
+                d=dict(request_id=str(uuid.uuid4()),name=r['name'],quote=r['quote'],email='',experience_type=experience,property_id=pid,rating=score,consent=True,publish_permission=True)
+                self.public('/api/feedback',d);r=self.content()['reviews'][0];r['status']='published'
+            self.assertEqual(self.post('/admin/api/reviews',r).status_code,200)
+        for path in ('/','/stay.html','/stays/aluva-villa'):
+            page=self.guest.get(path).text;self.assertIn('4.5/5',page);self.assertNotIn('private@example.invalid',page)
+        self.assertNotIn('4.5/5',self.guest.get('/stays/kumbalangi-villa').text)
+        four=next(r for r in self.content()['reviews'] if r.get('original_rating')==4)
+        self.assertEqual(self.post('/admin/api/reviews/'+four['id']+'/unpublish',{}).status_code,200)
+        self.assertIn('5.0/5',self.guest.get('/stays/aluva-villa').text)
+        self.assertIn('Leave feedback',self.guest.get('/').text)
+        self.assertIn('Leave a review',self.guest.get('/stays/kumbalangi-villa').text)
+    def test_ratings_require_whole_numbers_and_no_default_score(self):
+        from review_ratings import rating_summary
+        self.assertEqual(rating_summary([dict(status='published',permission=True,rating=n) for n in (5,4,4,4)])['average'],'4.3')
+        for score in (None,0,6,True,2.5,'5.0','bad'):
+            d=dict(request_id=str(uuid.uuid4()),name='Fictional invalid reviewer',quote='Invalid rating test only.',experience_type='guest',rating=score,consent=True,publish_permission=True)
+            self.assertEqual(self.public('/api/feedback',d).status_code,400,score)
+        self.assertEqual(self.content()['reviews'],[])
+        d=dict(name='Fictional admin reviewer',quote='Invalid rating test only.',rating=6,status='draft',permission=False)
+        self.assertEqual(self.post('/admin/api/reviews',d).status_code,400)
     def test_pending_deduplication_confirmation_overlap_and_checkout(self):
         d=self.booking();response=self.public('/api/bookings',d);self.assertEqual(response.status_code,200,response.text);first=response.json['reference']
         self.assertEqual(self.public('/api/bookings',d).json['reference'],first);self.assertEqual(len(self.bookings()),1)
